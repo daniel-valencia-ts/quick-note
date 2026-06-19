@@ -1,0 +1,19 @@
+[package]
+name = "quick-note"
+version = "0.1.0"
+edition = "2024"
+authors = ["Daniel Valencia"]
+description = "A simple, compact TUI tool for note taking"
+license = "MIT"
+repository = "https://github.com/daniel-valencia-ts/quick-note"
+keywords = ["tui", "tool", "notes"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+chrono = "0.4.45"
+directories = "6.0.0"
+rand = "0.10.1"
+ratatui = "0.30.1"
+ratatui-textarea = "0.9.2"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
