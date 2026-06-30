@@ -6,15 +6,11 @@ use crate::utils::{
     RelevanceLevel::{self, *},
 };
 use ratatui::{
-    layout::{
-        Constraint,
-        Direction::{self},
-        Layout, Rect,
-    },
+    DefaultTerminal, Frame,
+    layout::{Constraint, Layout, Rect},
     style::{Color, Style, Stylize},
     text::{Line, Span},
     widgets::{Block, BorderType, List, ListItem, Padding, Paragraph, Widget, Wrap},
-    DefaultTerminal, Frame,
 };
 use ratatui_textarea::WrapMode::WordOrGlyph;
 
@@ -56,7 +52,7 @@ pub fn configure_text_areas_style(app: &mut AppState) {
         .set_style(Style::new().fg(Color::LightYellow).bold());
 }
 
-pub fn render(terminal: &mut DefaultTerminal, app: &mut AppState) -> Result<(), std::io::Error> {
+pub fn render(terminal: &mut DefaultTerminal, app: &mut AppState) -> std::io::Result<()> {
     terminal.draw(|f| render_outer_layout(f, app))?;
     Ok(())
 }
@@ -67,15 +63,13 @@ fn render_outer_layout(frame: &mut Frame, app: &mut AppState) {
         .margin(1)
         .areas(frame.area());
 
-    let [header, body, footer] = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(2),
-            Constraint::Fill(1),
-            Constraint::Length(1),
-        ])
-        .margin(1)
-        .areas(program_area);
+    let [header, body, footer] = Layout::vertical([
+        Constraint::Length(2),
+        Constraint::Fill(1),
+        Constraint::Length(1),
+    ])
+    .margin(1)
+    .areas(program_area);
 
     Block::bordered()
         .border_type(BorderType::Rounded)
@@ -162,13 +156,11 @@ fn render_outer_layout(frame: &mut Frame, app: &mut AppState) {
         Span::raw(" "),
     ]);
     let footer_prompt_length: usize = footer_prompt.spans.iter().map(|span| span.width()).sum();
-    let [left_side_command_prompt, right_side_command_prompt] = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Max(footer_prompt_length.try_into().unwrap()),
-            Constraint::Fill(1),
-        ])
-        .areas(footer);
+    let [left_side_command_prompt, right_side_command_prompt] = Layout::horizontal([
+        Constraint::Max(footer_prompt_length.try_into().unwrap()),
+        Constraint::Fill(1),
+    ])
+    .areas(footer);
 
     frame.render_widget(footer_prompt, left_side_command_prompt);
     frame.render_widget(&app.text_areas.command_prompt, right_side_command_prompt);
@@ -184,15 +176,11 @@ fn render_outer_layout(frame: &mut Frame, app: &mut AppState) {
 }
 
 fn render_select(frame: &mut Frame, app: &mut AppState, body: Rect) {
-    let [search_bar, select_menu] = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Fill(1)])
+    let [search_bar, select_menu] = Layout::vertical([Constraint::Length(3), Constraint::Fill(1)])
         .margin(2)
         .areas(body);
 
-    let [symbol, text_area] = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Length(2), Constraint::Fill(1)])
+    let [symbol, text_area] = Layout::horizontal([Constraint::Length(2), Constraint::Fill(1)])
         .margin(1)
         .areas(search_bar);
 
@@ -222,7 +210,7 @@ fn render_select(frame: &mut Frame, app: &mut AppState, body: Rect) {
             let list = List::new(
                 notes
                     .iter()
-                    .map(|x| ListItem::from(x.title.clone()).fg(Color::Gray)),
+                    .map(|x| ListItem::from(x.title.as_str()).fg(Color::Gray)),
             )
             .highlight_symbol(">")
             .highlight_style(Style::default().bg(Color::Green).fg(Color::White))
@@ -250,15 +238,12 @@ fn render_select(frame: &mut Frame, app: &mut AppState, body: Rect) {
 }
 
 fn render_add(frame: &mut Frame, app: &mut AppState, body: Rect) {
-    let [left_side, right_side] = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(80), Constraint::Percentage(20)])
-        .margin(1)
-        .areas(body);
+    let [left_side, right_side] =
+        Layout::horizontal([Constraint::Percentage(80), Constraint::Percentage(20)])
+            .margin(1)
+            .areas(body);
 
-    let [title_area, body_area] = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Fill(1)])
+    let [title_area, body_area] = Layout::vertical([Constraint::Length(3), Constraint::Fill(1)])
         .margin(1)
         .areas(left_side);
 
@@ -305,15 +290,11 @@ fn render_add(frame: &mut Frame, app: &mut AppState, body: Rect) {
 }
 
 fn render_remove(frame: &mut Frame, app: &mut AppState, body: Rect) {
-    let [search_bar, select_menu] = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Fill(1)])
+    let [search_bar, select_menu] = Layout::vertical([Constraint::Length(3), Constraint::Fill(1)])
         .margin(2)
         .areas(body);
 
-    let [symbol, text_area] = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Length(2), Constraint::Fill(1)])
+    let [symbol, text_area] = Layout::horizontal([Constraint::Length(2), Constraint::Fill(1)])
         .margin(1)
         .areas(search_bar);
 
@@ -343,7 +324,7 @@ fn render_remove(frame: &mut Frame, app: &mut AppState, body: Rect) {
             let list = List::new(
                 notes
                     .iter()
-                    .map(|x| ListItem::from(x.title.clone()).fg(Color::Gray)),
+                    .map(|x| ListItem::from(x.title.as_str()).fg(Color::Gray)),
             )
             .highlight_symbol(">")
             .highlight_style(Style::default().bg(Color::Red).fg(Color::White))
@@ -371,15 +352,11 @@ fn render_remove(frame: &mut Frame, app: &mut AppState, body: Rect) {
 }
 
 fn render_modify_select(frame: &mut Frame, app: &mut AppState, body: Rect) {
-    let [search_bar, select_menu] = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Fill(1)])
+    let [search_bar, select_menu] = Layout::vertical([Constraint::Length(3), Constraint::Fill(1)])
         .margin(2)
         .areas(body);
 
-    let [symbol, text_area] = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Length(2), Constraint::Fill(1)])
+    let [symbol, text_area] = Layout::horizontal([Constraint::Length(2), Constraint::Fill(1)])
         .margin(1)
         .areas(search_bar);
 
@@ -409,7 +386,7 @@ fn render_modify_select(frame: &mut Frame, app: &mut AppState, body: Rect) {
             let list = List::new(
                 notes
                     .iter()
-                    .map(|x| ListItem::from(x.title.clone()).fg(Color::Gray)),
+                    .map(|x| ListItem::from(x.title.as_str()).fg(Color::Gray)),
             )
             .highlight_symbol(">")
             .highlight_style(Style::default().bg(Color::Yellow).fg(Color::White))
@@ -437,9 +414,7 @@ fn render_modify_select(frame: &mut Frame, app: &mut AppState, body: Rect) {
 }
 
 fn render_modify(frame: &mut Frame, app: &mut AppState, body: Rect) {
-    let [title_area, body_area] = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Fill(1)])
+    let [title_area, body_area] = Layout::vertical([Constraint::Length(3), Constraint::Fill(1)])
         .margin(1)
         .areas(body);
 
@@ -462,13 +437,12 @@ fn render_modify(frame: &mut Frame, app: &mut AppState, body: Rect) {
 fn render_display(frame: &mut Frame, app: &mut AppState, body: Rect) {
     match &app.current_note {
         Some(note) => {
-            let [left_side, right_side] = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
-                .margin(1)
-                .areas(body);
+            let [left_side, right_side] =
+                Layout::horizontal([Constraint::Percentage(70), Constraint::Percentage(30)])
+                    .margin(1)
+                    .areas(body);
 
-            Paragraph::new(note.body.clone())
+            Paragraph::new(note.body.as_str())
                 .fg(Color::White)
                 .wrap(Wrap { trim: false })
                 .scroll((app.display_offset, 0))
@@ -490,13 +464,13 @@ fn render_display(frame: &mut Frame, app: &mut AppState, body: Rect) {
             };
 
             Paragraph::new(vec![
-                Line::from(note.title.clone().fg(Color::LightYellow)),
+                Line::from(note.title.as_str().fg(Color::LightYellow)),
                 Line::default(),
                 relevance_level.bold().underlined().italic(),
                 Line::default(),
                 Line::from(note.id.to_string().fg(Color::LightRed)),
                 Line::default(),
-                Line::from(note.timestamp.clone().fg(Color::Gray)),
+                Line::from(note.timestamp.as_str().fg(Color::Gray)),
             ])
             .wrap(Wrap { trim: false })
             .block(
@@ -508,7 +482,6 @@ fn render_display(frame: &mut Frame, app: &mut AppState, body: Rect) {
         }
         None => {
             let [inner_body] = Layout::default()
-                .direction(Direction::Horizontal)
                 .constraints([Constraint::Fill(1)])
                 .margin(1)
                 .areas(body);

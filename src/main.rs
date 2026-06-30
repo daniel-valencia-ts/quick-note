@@ -16,6 +16,8 @@ use helpers::{get_notes, handle_input};
 use interface::{configure_text_areas_style, render};
 use utils::{AppState, Mode::*, TextAreas};
 
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 fn main() {
     let res = run();
     // Return the terminal back to its normal state after the program finishes.
@@ -29,12 +31,12 @@ fn main() {
             } else if error.downcast_ref::<serde_json::error::Error>().is_some() {
                 output.push_str("an error occurred while trying to deserialize or serialize notes");
             }
-            println!("{}", output);
+            eprintln!("{}", output);
         }
     }
 }
 
-fn run() -> Result<(), Box<dyn std::error::Error>> {
+fn run() -> Result<()> {
     // Get access to the path of the directory where persistent data is stored.
     let path = ProjectDirs::from("", "daniel-valencia-ts", "quick-note")
         .unwrap()

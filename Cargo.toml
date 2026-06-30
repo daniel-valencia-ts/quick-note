@@ -1,6 +1,6 @@
 [package]
 name = "quick-note"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Daniel Valencia"]
 description = "A simple, compact TUI tool for note taking"

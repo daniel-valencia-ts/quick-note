@@ -1,7 +1,7 @@
 use serde_json::{from_str, to_string_pretty};
 use std::{
     fs::File,
-    io::{Error, Read, Seek, Write},
+    io::{Read, Seek, Write},
     path::PathBuf,
 };
 
@@ -14,7 +14,7 @@ pub struct FileHandler {
 }
 
 impl FileHandler {
-    pub fn new(path: PathBuf, name: String) -> Result<Self, Error> {
+    pub fn new(path: PathBuf, name: String) -> std::io::Result<Self> {
         // Create a file struct with permissions for both writing and reading.
         let mut file = File::options()
             .read(true)
@@ -35,7 +35,7 @@ impl FileHandler {
         })
     }
 
-    fn get_file_content(&mut self) -> Result<String, Error> {
+    fn get_file_content(&mut self) -> std::io::Result<String> {
         // Rewind the file's internal cursor, propagating an error if the operation fails.
         self.file_struct.rewind()?;
 
@@ -48,7 +48,7 @@ impl FileHandler {
         }
     }
 
-    pub fn deserialize_notes(&mut self) -> Result<Vec<Note>, Box<dyn std::error::Error>> {
+    pub fn deserialize_notes(&mut self) -> crate::Result<Vec<Note>> {
         match self.get_file_content() {
             // Try to turn the content of the file into a vector of Note structs and return it.
             Ok(content) => match from_str::<Vec<Note>>(&content) {
@@ -59,7 +59,7 @@ impl FileHandler {
         }
     }
 
-    pub fn serialize_notes(&mut self, notes: &Vec<Note>) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn serialize_notes(&mut self, notes: &Vec<Note>) -> crate::Result<()> {
         // Turn the vector of Note structs in memory into a String of JSON data.
         let serialized_notes = to_string_pretty(notes)?;
         // Attempt to store that data in persistent storage.
@@ -69,7 +69,7 @@ impl FileHandler {
         }
     }
 
-    fn update_file_content(&mut self, content: String) -> Result<(), Error> {
+    fn update_file_content(&mut self, content: String) -> std::io::Result<()> {
         // Create a new file where the updated data will be stored.
         let new_file_name = self.file_name.clone() + ".tmp";
         let mut new_file = File::create(self.directory_path.join(&new_file_name))?;
@@ -97,13 +97,13 @@ impl FileHandler {
         Ok(())
     }
 
-    pub fn add_note(&mut self, note: Note) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn add_note(&mut self, note: Note) -> crate::Result<()> {
         let mut notes = self.deserialize_notes()?;
         notes.push(note);
         self.serialize_notes(&notes)
     }
 
-    pub fn remove_note(&mut self, id: u32) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn remove_note(&mut self, id: u32) -> crate::Result<()> {
         let mut notes = self.deserialize_notes()?;
 
         if let Some(target_index) = notes.iter().position(|x| x.id == id) {

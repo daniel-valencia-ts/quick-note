@@ -49,14 +49,16 @@ pub enum Mode {
     Display,
 }
 
-pub fn to_mode(mode_as_string: String) -> Option<Mode> {
-    match mode_as_string.as_str() {
-        "select" => Some(Mode::Select),
-        "add" => Some(Mode::AddNoteTitle),
-        "remove" => Some(Mode::Remove),
-        "modify" => Some(Mode::ModifyNoteSelect),
-        "display" => Some(Mode::Display),
-        _ => None,
+impl Mode {
+    pub fn from(mode_as_string: &str) -> Option<Mode> {
+        match mode_as_string {
+            "select" => Some(Mode::Select),
+            "add" => Some(Mode::AddNoteTitle),
+            "remove" => Some(Mode::Remove),
+            "modify" => Some(Mode::ModifyNoteSelect),
+            "display" => Some(Mode::Display),
+            _ => None,
+        }
     }
 }
 
@@ -120,9 +122,9 @@ impl Note {
         Note {
             id: random::<u32>(),
             timestamp: Local::now().format("%Y-%b-%d-%H:%M").to_string(),
-            title: title,
-            body: body,
-            relevance: relevance,
+            title,
+            body,
+            relevance,
         }
     }
 }

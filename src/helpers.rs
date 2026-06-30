@@ -1,14 +1,14 @@
-use std::error::Error;
-
 use ratatui::crossterm::event::{self, KeyEvent};
 
 use crate::utils::{
-    to_mode, AppState,
+    AppState,
     Mode::{self, *},
     Note, RelevanceLevel,
 };
 
-pub fn get_notes(app: &mut AppState) -> Result<Option<Vec<Note>>, Box<dyn Error>> {
+use crate::Result;
+
+pub fn get_notes(app: &mut AppState) -> Result<Option<Vec<Note>>> {
     let notes: Vec<Note> = app.file_handler.deserialize_notes()?;
     // Return the notes that match the input provided by the user so far, either in
     // their title or numerical id.
@@ -31,10 +31,10 @@ pub fn get_notes(app: &mut AppState) -> Result<Option<Vec<Note>>, Box<dyn Error>
     }
 }
 
-pub fn execute_command(app: &mut AppState) -> Result<(), Box<dyn Error>> {
+pub fn execute_command(app: &mut AppState) -> Result<()> {
     match app.text_areas.command_prompt.lines()[0].as_str() {
         "select" | "add" | "remove" | "modify" | "display" => {
-            let new_mode = to_mode(app.text_areas.command_prompt.lines()[0].clone()).unwrap();
+            let new_mode = Mode::from(&app.text_areas.command_prompt.lines()[0]).unwrap();
             change_mode(app, new_mode)?;
         }
         "exit" => app.exit = true,
@@ -44,7 +44,7 @@ pub fn execute_command(app: &mut AppState) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn change_mode(app: &mut AppState, new_mode: Mode) -> Result<(), Box<dyn Error>> {
+pub fn change_mode(app: &mut AppState, new_mode: Mode) -> Result<()> {
     // Change from the current mode to the target one, executing a specific
     // set of actions based on the former.
     match &app.current_mode {
@@ -144,7 +144,7 @@ pub fn change_mode(app: &mut AppState, new_mode: Mode) -> Result<(), Box<dyn Err
     Ok(())
 }
 
-fn quit_mode(app: &mut AppState) -> Result<(), Box<dyn Error>> {
+fn quit_mode(app: &mut AppState) -> Result<()> {
     match app.current_mode {
         AddNoteTitle | AddNoteBody | AddNoteRelevance | ModifyNoteTitle | ModifyNoteBody => {
             app.text_areas.note_title.clear();
@@ -164,7 +164,7 @@ fn quit_mode(app: &mut AppState) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn handle_input(app: &mut AppState, key: KeyEvent) -> Result<(), Box<dyn Error>> {
+pub fn handle_input(app: &mut AppState, key: KeyEvent) -> Result<()> {
     if key.code == event::KeyCode::Esc {
         app.exit = true;
     } else if key.code == event::KeyCode::Char('c')
